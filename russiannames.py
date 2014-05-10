@@ -6,7 +6,10 @@ import requests
 import sys
 import urllib
 
+from Person import Person
+
 verbose = 0
+persons = list()
 
 
 def parseRuLang(data):
@@ -31,7 +34,7 @@ def parseRuLang(data):
         tmp = runame.split(",")[0]
         runame = "".join(tmp)
     if runame.find("(") > 0:
-        runame = data[b:e].split(" (")[0]
+        runame = runame.split(" (")[0]
     # italic etc html scrab
     if runame.find(">") > 0:
         runame = runame[runame.find(">") + 1: len(runame)]
@@ -47,6 +50,8 @@ def decodename(url):
 
 def main():
     listofnames = list()
+    i = 0
+
     with open("listofrussian.txt") as f:
         listofnames = f.readlines()
 
@@ -69,8 +74,17 @@ def main():
         name = name[0 : e]
         name = decodename(name)
         runame = parseRuLang(r.content)
-        print "%s = %s" % (name.replace("_", " "), runame)
-        break
+
+
+        if runame == None:
+            continue
+
+        person = Person(name, runame, wikipage)
+        persons.append(person)
+
+        i += 1
+        sys.stdout.write("\r%4d / %3d\r" % (i, len(listofnames)))
+        sys.stdout.flush()
 
 if __name__ == '__main__':
     try:
