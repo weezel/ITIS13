@@ -4,6 +4,7 @@
 import re
 import requests
 import sys
+import urllib
 
 verbose = 0
 
@@ -27,10 +28,25 @@ def parseRuLang(data):
 
     runame = data[b:e]
     if runame.find(",") > 0:
-        runame = runame.split(",")[0]
+        tmp = runame.split(",")
+        runame = "".join(tmp)
     if runame.find("(") > 0:
         runame = data[b:e].split(" (")[0]
-    return runame
+    # italic etc html scrab
+    if runame.find(">") > 0:
+        runame = runame[runame.find(">") + 1: len(runame)]
+    if runame.find("<") > 0:
+        runame = runame[0 : runame.find(";")]
+    if runame.find(";") > 0:
+        runame = runame[0 : runame.find(";")]
+
+    try:
+        return decodeurl(runame)
+    except UnicodeDecodeError:
+        return decodeurl
+
+def decodeurl(url):
+    return urllib.unquote(url).decode("utf-8")
 
 def main():
     listofnames = list()
@@ -51,7 +67,6 @@ def main():
 
         runame = parseRuLang(r.content)
         print "%s = %s" % (name.replace("_", " "), runame)
-
 
 if __name__ == '__main__':
     try:
