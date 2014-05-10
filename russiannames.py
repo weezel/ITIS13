@@ -28,7 +28,7 @@ def parseRuLang(data):
 
     runame = data[b:e]
     if runame.find(",") > 0:
-        tmp = runame.split(",")
+        tmp = runame.split(",")[0]
         runame = "".join(tmp)
     if runame.find("(") > 0:
         runame = data[b:e].split(" (")[0]
@@ -40,13 +40,10 @@ def parseRuLang(data):
     if runame.find(";") > 0:
         runame = runame[0 : runame.find(";")]
 
-    try:
-        return decodeurl(runame)
-    except UnicodeDecodeError:
-        return decodeurl
+    return runame
 
-def decodeurl(url):
-    return urllib.unquote(url).decode("utf-8")
+def decodename(url):
+    return urllib.unquote(url).decode("utf-8").encode("utf-8")
 
 def main():
     listofnames = list()
@@ -65,8 +62,15 @@ def main():
         if verbose:
             print wikipage
 
+        # Clean english name too
+        e = name.find("(") - 1
+        if e <= 0:
+            e = len(name)
+        name = name[0 : e]
+        name = decodename(name)
         runame = parseRuLang(r.content)
         print "%s = %s" % (name.replace("_", " "), runame)
+        break
 
 if __name__ == '__main__':
     try:
