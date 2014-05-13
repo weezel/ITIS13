@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import pickle
 import re
 import requests
 import sys
@@ -10,6 +12,7 @@ from Person import Person
 
 verbose = 0
 persons = list()
+fname_rusnames = "rusnames.dump"
 
 
 def parseRuLang(data):
@@ -43,12 +46,29 @@ def parseRuLang(data):
     if runame.find(";") > 0:
         runame = runame[0 : runame.find(";")]
 
-    return runame
+    return runame.decode("utf-8").encode("utf-8")
+
 
 def decodename(url):
     return urllib.unquote(url).decode("utf-8").encode("utf-8")
 
-def main():
+
+def savenames2file(names):
+    """
+    Save names to a file. Saves bandwidth and nerves.
+    """
+    pickle.dump(names, open(fname_rusnames, "wb"))
+
+
+def loadnamesfromfile():
+    """
+    Load names from a file. Saves bandwidth and nerves.
+    """
+    pickle.load(open(fname_rusnames, "rb"))
+
+
+def fetchnames():
+    global persons
     listofnames = list()
     i = 0
 
@@ -75,7 +95,6 @@ def main():
         name = decodename(name)
         runame = parseRuLang(r.content)
 
-
         if runame == None:
             continue
 
@@ -83,8 +102,20 @@ def main():
         persons.append(person)
 
         i += 1
-        sys.stdout.write("\r%4d / %3d\r" % (i, len(listofnames)))
+        sys.stdout.write("\r%4d / %3d" % (i, len(listofnames)))
         sys.stdout.flush()
+    print "\n",
+
+
+def main():
+    global persons
+
+    if os.path.isfile(fname_rusnames):
+        persons = loadnamesfromfile()
+    else:
+        fetchnames()
+        savenames2file(persons)
+
 
 if __name__ == '__main__':
     try:
