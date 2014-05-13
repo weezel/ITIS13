@@ -11,7 +11,6 @@ import urllib
 from Person import Person
 
 verbose = 0
-persons = list()
 fname_rusnames = "rusnames.dump"
 
 
@@ -42,7 +41,7 @@ def parseRuLang(data):
     if runame.find(">") > 0:
         runame = runame[runame.find(">") + 1: len(runame)]
     if runame.find("<") > 0:
-        runame = runame[0 : runame.find(";")]
+        runame = runame[0 : runame.find("<")]
     if runame.find(";") > 0:
         runame = runame[0 : runame.find(";")]
 
@@ -64,12 +63,14 @@ def loadnamesfromfile():
     """
     Load names from a file. Saves bandwidth and nerves.
     """
-    pickle.load(open(fname_rusnames, "rb"))
+    persons = pickle.load(open(fname_rusnames, "rb"))
+    return persons
 
 
 def fetchnames():
-    global persons
     listofnames = list()
+    persons = list()
+
     i = 0
 
     with open("listofrussian.txt") as f:
@@ -92,7 +93,7 @@ def fetchnames():
         if e <= 0:
             e = len(name)
         name = name[0 : e]
-        name = decodename(name)
+        name = decodename(name).replace("_", " ")
         runame = parseRuLang(r.content)
 
         if runame == None:
@@ -102,20 +103,20 @@ def fetchnames():
         persons.append(person)
 
         i += 1
-        sys.stdout.write("\r%4d / %3d" % (i, len(listofnames)))
-        sys.stdout.flush()
+        print "[%4d / %3d] %s" % (i, len(listofnames), person)
     print "\n",
+
+    return persons
 
 
 def main():
-    global persons
+    persons = list()
 
     if os.path.isfile(fname_rusnames):
         persons = loadnamesfromfile()
     else:
-        fetchnames()
+        persons = fetchnames()
         savenames2file(persons)
-
 
 if __name__ == '__main__':
     try:
