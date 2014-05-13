@@ -70,8 +70,8 @@ def loadnamesfromfile():
 def fetchnames():
     listofnames = list()
     persons = list()
-
     i = 0
+    skipped = 0
 
     with open("listofrussian.txt") as f:
         listofnames = f.readlines()
@@ -82,7 +82,7 @@ def fetchnames():
 
         r = requests.get(wikipage)
         if r == None:
-            print "Cannot find Russian language section for %s" % name.replace("_", " ")
+            skipped += 1
             continue
 
         if verbose:
@@ -97,13 +97,14 @@ def fetchnames():
         runame = parseRuLang(r.content)
 
         if runame == None:
+            skipped += 1
             continue
 
         person = Person(name, runame, wikipage)
         persons.append(person)
 
         i += 1
-        print "[%4d / %3d] %s" % (i, len(listofnames), person)
+        print "[%4d / %3d / %3d] %s" % (i, len(listofnames), skipped, person)
     print "\n",
 
     return persons
