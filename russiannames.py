@@ -8,6 +8,8 @@ import requests
 import sys
 import urllib
 
+from difflib import SequenceMatcher
+from transliterate import translit, get_available_language_codes
 from Person import Person
 
 verbose = 0
@@ -21,7 +23,7 @@ def parseRuLang(data):
     b = data.find(findable)
     if b == -1:
         return None
-    # Strip xml scrab out
+    # Strip xml scrap out
     tmp = data.find(">", b)
     if tmp != -1:
         b = tmp + 1
@@ -37,7 +39,7 @@ def parseRuLang(data):
         runame = "".join(tmp)
     if runame.find("(") > 0:
         runame = runame.split(" (")[0]
-    # italic etc html scrab
+    # italic etc html scrap
     if runame.find(">") > 0:
         runame = runame[runame.find(">") + 1: len(runame)]
     if runame.find("<") > 0:
@@ -48,7 +50,7 @@ def parseRuLang(data):
     return runame.decode("utf-8").encode("utf-8")
 
 
-def decodename(url):
+def decodeName(url):
     return urllib.unquote(url).decode("utf-8").encode("utf-8")
 
 
@@ -59,7 +61,7 @@ def savenames2file(names):
     pickle.dump(names, open(fname_rusnames, "wb"))
 
 
-def loadnamesfromfile():
+def loadNamesFromFile():
     """
     Load names from a file. Saves bandwidth and nerves.
     """
@@ -67,7 +69,7 @@ def loadnamesfromfile():
     return persons
 
 
-def fetchnames():
+def fetchNames():
     listofnames = list()
     persons = list()
     i = 0
@@ -93,7 +95,7 @@ def fetchnames():
         if e <= 0:
             e = len(name)
         name = name[0 : e]
-        name = decodename(name).replace("_", " ")
+        name = decodeName(name).replace("_", " ")
         runame = parseRuLang(r.content)
 
         if runame == None:
@@ -110,14 +112,65 @@ def fetchnames():
     return persons
 
 
+def nameCompare(persons):
+    for person in persons:
+        en = person.en_name.split(" ")
+        ru = person.ru_name.split(" ")
+        ru = [name.decode("utf-8") for name in ru]
+
+        translit_lst = [translit(name.decode("utf-8"), "ru") for name in en]
+
+        #print u"%s <===> %s" % (translit_lst, ru)
+        for ru_litname in translit_lst:
+            for ru_name in ru:
+                print "%s %s" % (ru_litname, ru_name)
+                print "'%s' (%d), '%s' (%d)" % (ru_litname, len(ru_litname), ru_name, len(ru_name))
+                print
+
+                if ru_litname == ru_name:
+                    print u"%s == %s" % (ru_name, ru_litname)
+        break
+
+
+    #for en in enname.split(" "):
+    #    for ru in runame.split(" "):
+    #        translit_en = translit(unicode(en), "ru")
+    #        print "%s (%s) = %s" % (en , translit_en, ru)
+    #        diff = SequenceMatcher(None, translit_en, ru).ratio()
+    #        print "%s = %s [%.3f]" % (translit_en, ru, diff)
+    #    #break
+
+
+def firstNameCompare(persons):
+    i = 1
+
+    while i < len(persons):
+        prevname = persons[i - 1].en_name.split(" ")[0]
+        curname  = persons[i].en_name.split(" ")[0]
+
+        #print "%s:" % (prevname),
+        print "%s:" % (persons[i - 1].en_name.split(" ")),
+
+        while prevname == curname and i < len(persons):
+            print "%s" % (", ".join(persons[i - 1].ru_name.split(" "))),
+            i += 1
+            curname = persons[i].en_name.split(" ")[0]
+        print
+
+        i += 1
+
+
 def main():
     persons = list()
 
     if os.path.isfile(fname_rusnames):
-        persons = loadnamesfromfile()
+        persons = loadNamesFromFile()
     else:
-        persons = fetchnames()
+        persons = fetchNames()
         savenames2file(persons)
+
+    nameCompare(persons)
+
 
 if __name__ == '__main__':
     try:
