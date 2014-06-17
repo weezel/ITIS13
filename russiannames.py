@@ -10,6 +10,8 @@ import urllib
 
 from difflib import SequenceMatcher
 from transliterate import translit, get_available_language_codes
+from nltk.util import ngrams
+
 from Person import Person
 
 verbose = 0
@@ -125,6 +127,16 @@ def fetchNames():
     return persons
 
 
+def jaccardIdx(w1, w2):
+    w1ngrams = set(ngrams(w1, 2))
+    w2ngrams = set(ngrams(w2, 2))
+
+    union = w1ngrams.union(w2ngrams)
+    intersect = w1ngrams.intersection(w2ngrams)
+
+    return 1.0 - float(len(intersect)) / float(len(union))
+
+
 def nameCompare(persons):
     for person in persons:
         en = person.en_name.split(" ")
@@ -136,13 +148,12 @@ def nameCompare(persons):
 
         for ru_litname in translit_ru:
             for ru_name in ru:
-                print "'%s' (%d), '%s' (%d)" % (ru_litname, len(ru_litname), ru_name, len(ru_name))
+                print "'%s' (%d), '%s' (%d)" % (ru_litname, \
+                       len(ru_litname), ru_name, len(ru_name))
 
-                diff = SequenceMatcher(None, ru_litname, ru_name).ratio()
-                if ru_litname == ru_name:
-                    print "%s == %s" % (ru_name, ru_litname)
-                elif diff > 0.75:
-                    print "%s != %s (%.2f%%)" % (ru_name, ru_litname, diff)
+                diff = jaccardIdx(ru_name, ru_litname)
+                print "JaccardIdx: %s <==> %s (%.2f%%)" % (ru_name, \
+                       ru_litname, diff)
             print
         break
 
