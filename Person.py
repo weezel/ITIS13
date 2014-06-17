@@ -1,8 +1,8 @@
 class Person:
     def __init__(self, en, ru, url):
-        self.en_name = en.decode("utf-8").encode("utf-8")
-        self.ru_name = ru.decode("utf-8").encode("utf-8")
-        self.url = url.decode("utf-8").encode("utf-8")
+        self.en_name = en
+        self.ru_name = ru
+        self.url = url
     def compare(self, p):
         pass
     def __repr__(self):

@@ -47,11 +47,24 @@ def parseRuLang(data):
     if runame.find(";") > 0:
         runame = runame[0 : runame.find(";")]
 
-    return runame.decode("utf-8").encode("utf-8")
+    return unicode(runame, "utf-8") #.encode("utf-8")
 
 
 def decodeName(url):
-    return urllib.unquote(url).decode("utf-8").encode("utf-8")
+    return unicode(urllib.unquote(url), "utf-8") #.encode("utf-8")
+
+
+def stripAccentMark(s):
+    newstring = unicode()
+    c = 0
+
+    while c < len(s):
+        if ord(s[c]) == 769: # ´ mark
+            c += 1
+            continue
+        newstring += s[c]
+        c += 1
+    return newstring
 
 
 def savenames2file(names):
@@ -116,29 +129,22 @@ def nameCompare(persons):
     for person in persons:
         en = person.en_name.split(" ")
         ru = person.ru_name.split(" ")
-        ru = [name.decode("utf-8") for name in ru]
+        ru = [stripAccentMark(name) for name in ru]
 
-        translit_lst = [translit(name.decode("utf-8"), "ru") for name in en]
+        # Transliterate English name to Russian name
+        translit_ru = [translit(name, "ru") for name in en]
 
-        #print u"%s <===> %s" % (translit_lst, ru)
-        for ru_litname in translit_lst:
+        for ru_litname in translit_ru:
             for ru_name in ru:
-                print "%s %s" % (ru_litname, ru_name)
                 print "'%s' (%d), '%s' (%d)" % (ru_litname, len(ru_litname), ru_name, len(ru_name))
-                print
 
+                diff = SequenceMatcher(None, ru_litname, ru_name).ratio()
                 if ru_litname == ru_name:
-                    print u"%s == %s" % (ru_name, ru_litname)
+                    print "%s == %s" % (ru_name, ru_litname)
+                elif diff > 0.75:
+                    print "%s != %s (%.2f%%)" % (ru_name, ru_litname, diff)
+            print
         break
-
-
-    #for en in enname.split(" "):
-    #    for ru in runame.split(" "):
-    #        translit_en = translit(unicode(en), "ru")
-    #        print "%s (%s) = %s" % (en , translit_en, ru)
-    #        diff = SequenceMatcher(None, translit_en, ru).ratio()
-    #        print "%s = %s [%.3f]" % (translit_en, ru, diff)
-    #    #break
 
 
 def firstNameCompare(persons):
@@ -166,6 +172,8 @@ def main():
     if os.path.isfile(fname_rusnames):
         persons = loadNamesFromFile()
     else:
+        print " %4s / %3s / %3s  %s" % ("Cur", "Ttl", "Err", "Person")
+        print "#" * 25
         persons = fetchNames()
         savenames2file(persons)
 
