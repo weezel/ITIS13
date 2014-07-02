@@ -137,7 +137,7 @@ def jaccardIdx(w1, w2):
     return 1.0 - float(len(intersect)) / float(len(union))
 
 
-def nameCompare(persons):
+def nameCompare(persons, percentage = 50):
     for person in persons:
         en = person.en_name.split(" ")
         ru = person.ru_name.split(" ")
@@ -148,14 +148,13 @@ def nameCompare(persons):
 
         for ru_litname in translit_ru:
             for ru_name in ru:
-                print "'%s' (%d), '%s' (%d)" % (ru_litname, \
-                       len(ru_litname), ru_name, len(ru_name))
+                #print "'%s' (%d), '%s' (%d)" % (ru_litname, \
+                #       len(ru_litname), ru_name, len(ru_name))
 
                 diff = jaccardIdx(ru_name, ru_litname)
-                print "JaccardIdx: %s <==> %s (%.2f%%)" % (ru_name, \
-                       ru_litname, diff)
-            print
-        break
+                if diff <= percentage:
+                    yield u"%s <==> %s (%.2f%%)" % (ru_litname, \
+                           ru_name, diff)
 
 
 def firstNameCompare(persons):
@@ -188,7 +187,8 @@ def main():
         persons = fetchNames()
         savenames2file(persons)
 
-    nameCompare(persons)
+    for name in nameCompare(persons, 20):
+        print name
 
 
 if __name__ == '__main__':
