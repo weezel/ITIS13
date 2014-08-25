@@ -137,7 +137,7 @@ def jaccardIdx(w1, w2):
     return 1.0 - float(len(intersect)) / float(len(union))
 
 
-def nameCompare(persons, percentage = 50):
+def nameCompare(persons, percentage = float(0.50)):
     for person in persons:
         en = person.en_name.split(" ")
         ru = person.ru_name.split(" ")
@@ -145,16 +145,17 @@ def nameCompare(persons, percentage = 50):
 
         # Transliterate English name to Russian name
         translit_ru = [translit(name, "ru") for name in en]
+        translit_en = [translit(name.encode("utf-8").decode("utf-8"), \
+                reversed = True) for name in ru]
 
-        for ru_litname in translit_ru:
-            for ru_name in ru:
-                #print "'%s' (%d), '%s' (%d)" % (ru_litname, \
-                #       len(ru_litname), ru_name, len(ru_name))
+        print "\n%s" % (" ".join(en)) # Print name in english
 
-                diff = jaccardIdx(ru_name, ru_litname)
+        for en_litname in translit_en:
+            for en_name in en:
+                diff = jaccardIdx(en_name, en_litname)
                 if diff <= percentage:
-                    yield u"%s <==> %s (%.2f%%)" % (ru_litname, \
-                           ru_name, diff)
+                    yield u"%s <==> %s (%.2f)" % (en_litname, \
+                           en_name, diff)
 
 
 def firstNameCompare(persons):
@@ -187,8 +188,11 @@ def main():
         persons = fetchNames()
         savenames2file(persons)
 
-    for name in nameCompare(persons, 20):
+    for name in nameCompare(persons, 0.60):
         print name
+
+    print "============================"
+    print "Total %d names" % len(persons)
 
 
 if __name__ == '__main__':
