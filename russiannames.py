@@ -16,6 +16,7 @@ from Person import Person
 
 verbose = 0
 fname_rusnames = "rusnames.dump"
+fliterated_name = "literated.txt"
 
 
 def parseRuLang(data):
@@ -148,13 +149,13 @@ def nameCompare(persons, percentage = float(0.50)):
         translit_en = [translit(name.encode("utf-8").decode("utf-8"), \
                 reversed = True) for name in ru]
 
-        print "\n%s" % (" ".join(en)) # Print name in english
+        yield u"\n%s" % (" ".join(en)) # Print name in english
 
         for en_litname in translit_en:
             for en_name in en:
                 diff = jaccardIdx(en_name, en_litname)
                 if diff <= percentage:
-                    yield u"%s <==> %s (%.2f)" % (en_litname, \
+                    yield u":: (EN lit) %s <==> (EN orig) %s (%.2f)" % (en_litname, \
                            en_name, diff)
 
 
@@ -179,6 +180,7 @@ def firstNameCompare(persons):
 
 def main():
     persons = list()
+    fliterated = None
 
     if os.path.isfile(fname_rusnames):
         persons = loadNamesFromFile()
@@ -188,10 +190,16 @@ def main():
         persons = fetchNames()
         savenames2file(persons)
 
-    for name in nameCompare(persons, 0.60):
-        print name
+    try:
+        fliterated = open(fliterated_name, "wb")
+    except IOError, ie:
+        print "Cannot open file literated.txt for saving"
+        sys.exit(1)
 
-    print "============================"
+    for name in nameCompare(persons, 0.70):
+        fliterated.write("%s\n" % name.encode("utf-8"))
+    fliterated.close()
+
     print "Total %d names" % len(persons)
 
 
