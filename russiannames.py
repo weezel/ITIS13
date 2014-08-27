@@ -64,7 +64,7 @@ def stripAccentMark(s):
     c = 0
 
     while c < len(s):
-        if ord(s[c]) == 769: # ´ mark
+        if ord(s[c]) == 769: # UTF-8 quotation mark
             c += 1
             continue
         newstring += s[c]
