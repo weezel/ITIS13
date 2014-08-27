@@ -144,12 +144,13 @@ def nameCompare(persons, percentage = float(0.50)):
         ru = person.ru_name.split(" ")
         ru = [stripAccentMark(name) for name in ru]
 
-        # Transliterate English name to Russian name
+        # Transliterate english name to russian name
         translit_ru = [translit(name, "ru") for name in en]
         translit_en = [translit(name.encode("utf-8").decode("utf-8"), \
                 reversed = True) for name in ru]
 
-        yield u"\n%s" % (" ".join(en)) # Print name in english
+        # Print name in english and russian
+        yield u"\n%s (EN) %s (RU) " % (" ".join(en), " ".join(ru))
 
         for en_litname in translit_en:
             for en_name in en:
