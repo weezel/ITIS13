@@ -15,6 +15,8 @@ from nltk.util import ngrams
 from Person import Person
 
 verbose = 0
+total = 0
+totalcorrect = 0
 fname_rusnames = "rusnames.dump"
 fliterated_name = "literated.txt"
 
@@ -139,6 +141,8 @@ def jaccardIdx(w1, w2):
 
 
 def nameCompare(persons, percentage = float(0.50)):
+    global total, totalcorrect
+
     for person in persons:
         en = person.en_name.split(" ")
         ru = person.ru_name.split(" ")
@@ -149,6 +153,8 @@ def nameCompare(persons, percentage = float(0.50)):
         translit_en = [translit(name.encode("utf-8").decode("utf-8"), \
                 reversed = True) for name in ru]
 
+        total += len(en)
+
         # Print name in english and russian
         yield u"\n%s (EN) %s (RU) " % (" ".join(en), " ".join(ru))
 
@@ -156,6 +162,8 @@ def nameCompare(persons, percentage = float(0.50)):
             for en_name in en:
                 diff = jaccardIdx(en_name, en_litname)
                 if diff <= percentage:
+                    if diff == 0.0:
+                        totalcorrect += 1
                     yield u":: (EN lit) %s <==> (EN orig) %s (%.2f)" % (en_litname, \
                            en_name, diff)
 
@@ -167,7 +175,6 @@ def firstNameCompare(persons):
         prevname = persons[i - 1].en_name.split(" ")[0]
         curname  = persons[i].en_name.split(" ")[0]
 
-        #print "%s:" % (prevname),
         print "%s:" % (persons[i - 1].en_name.split(" ")),
 
         while prevname == curname and i < len(persons):
@@ -180,6 +187,7 @@ def firstNameCompare(persons):
 
 
 def main():
+    global total, totalcorrect
     persons = list()
     fliterated = None
 
@@ -199,9 +207,14 @@ def main():
 
     for name in nameCompare(persons, 0.70):
         fliterated.write("%s\n" % name.encode("utf-8"))
-    fliterated.close()
 
-    print "Total %d names" % len(persons)
+    # Print statistics
+    fliterated.write("\n-----------------\n")
+    fliterated.write("Total %d entries" % len(persons))
+    fliterated.write("\nWhere equal transliterations %d of total %d" % \
+            (totalcorrect, total))
+
+    fliterated.close()
 
 
 if __name__ == '__main__':
