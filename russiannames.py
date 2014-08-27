@@ -164,8 +164,8 @@ def nameCompare(persons, percentage = float(0.50)):
                 if diff <= percentage:
                     if diff == 0.0:
                         totalcorrect += 1
-                    yield u":: (EN lit) %s <==> (EN orig) %s (%.2f)" % (en_litname, \
-                           en_name, diff)
+                    yield u":: (EN orig) %s <==> (EN lit) %s (%.2f)" % (en_name, \
+                           en_litname, diff)
 
 
 def firstNameCompare(persons):
