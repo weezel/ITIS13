@@ -32,6 +32,7 @@ class RussianLanguagePack(TranslitLanguagePack):
         u"shch": u"щ",
         u"iu": u"ю",
         u"ia": u"я",
+        u"Sh": u"Ш",
         u"Kh": u"Х",
         u"Zh": u"Ж",
         u"Ts": u"Ц",
